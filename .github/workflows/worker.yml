@@ -1,0 +1,29 @@
+name: Kensho Hunter scheduled worker
+on:
+  schedule:
+    - cron: "17 */6 * * *"
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: kensho-worker
+  cancel-in-progress: false
+jobs:
+  collect-and-apply:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      KENSHO_MODE: supabase
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      PROFILE_ENCRYPTION_KEY: ${{ secrets.PROFILE_ENCRYPTION_KEY }}
+      ENABLE_LIVE_SUBMISSIONS: "false"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run worker
