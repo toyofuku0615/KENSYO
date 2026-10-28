@@ -1,3 +1,6 @@
+import { submitWithGenericBrowser } from "./executor";
+import { canUseGenericCampaign } from "./submission-validator";
+import type { GenerativeAI } from "./action-planner";
 import { chromium, type Page } from "playwright";
 import type { Campaign, Preferences, Profile } from "../core/types";
 import {
@@ -15,6 +18,7 @@ export interface SubmissionResult {
   error: string | null;
 }
 export interface SubmissionInput {
+  ai?: GenerativeAI;
   campaign: Campaign;
   profile: Profile;
   preferences: Preferences;
@@ -39,7 +43,10 @@ export function testFormOrigin(): string {
 }
 export function supportsCampaign(campaign: Campaign): boolean {
   // Production adapters are code-reviewed registrations, not identifiers supplied by scraped HTML.
-  return campaign.isDemo && campaign.adapterId === "local-test";
+  return (
+    (campaign.isDemo && campaign.adapterId === "local-test") ||
+    canUseGenericCampaign(campaign)
+  );
 }
 export function fixtureRequestAllowed(
   raw: string,
@@ -109,6 +116,8 @@ export async function executePlan(
   }
 }
 export const submitWithBrowser: Submitter = async (input) => {
+  if (input.campaign.adapterId === "generic-ai")
+    return submitWithGenericBrowser(input);
   const { campaign, profile, preferences, finalCheck } = input;
   const result = (
     status: SubmissionResult["status"],

@@ -402,7 +402,9 @@ export async function collectSource(source: Source): Promise<Campaign[]> {
       process.env.NODE_ENV === "production"
     )
       throw new Error("本番環境でテスト収集は無効です");
-    return fixtureCampaigns(source.id);
+    return source.id === AI_FIXTURE_SOURCE_ID
+      ? aiFixtureCampaigns(source.id)
+      : fixtureCampaigns(source.id);
   }
   if (!source.allowedHosts.length)
     throw new Error("取得を許可するホストが未設定です");
@@ -436,3 +438,4 @@ export async function collectSource(source: Source): Promise<Campaign[]> {
     );
   return [...deduplicated.values()];
 }
+import { AI_FIXTURE_SOURCE_ID, aiFixtureCampaigns } from "./ai-fixtures";

@@ -114,6 +114,7 @@ function autoCandidate(c: Campaign) {
     ["permitted", "silent"].includes(c.rules.verdict) &&
     c.rules.reviewedAllTerms &&
     c.rules.technicalAllowed &&
+    !c.rules.eligibilityUnknown &&
     !c.rules.purchaseRequired &&
     !c.rules.membershipRequired &&
     !c.rules.snsRequired &&
@@ -1793,12 +1794,20 @@ function Settings({
           </div>
           <div className="fact">
             <span>解析方式</span>
-            <b>検証可能なルールエンジン</b>
+            <b>
+              {data.aiConfigured ? "ルールエンジン + Gemini" : "ルールエンジン"}
+            </b>
           </div>
           <p className="help">
-            APIキーは環境変数で管理します。AI
-            APIが未設定でもルールベースの解析が動作します。Gmail連携は今後追加予定です。
+            GeminiのキーはAI設定画面から暗号化して保存できます。未設定やOFFのときもルールベースの解析が動作します。Gmail連携は今後追加予定です。
           </p>
+          <Button variant="outline" className="w-100" asChild>
+            <a href="/settings/ai">
+              <Sparkles />
+              AI設定を開く
+              <ArrowRight />
+            </a>
+          </Button>
         </section>
       </div>
     </div>

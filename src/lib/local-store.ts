@@ -1,3 +1,5 @@
+import { LocalAIRepository } from "./ai/local-repository";
+import type { AIRepository } from "../core/ai-types";
 import { DatabaseSync } from "node:sqlite";
 import { randomUUID } from "node:crypto";
 import { chmodSync, mkdirSync } from "node:fs";
@@ -22,6 +24,7 @@ import {
 
 type DataRow = { data: string };
 export class LocalStore implements Store {
+  readonly ai: AIRepository;
   private db: DatabaseSync;
   private key: Buffer;
   constructor(path: string, key?: string | Buffer) {
@@ -59,6 +62,7 @@ export class LocalStore implements Store {
       ).some((column) => column.name === "lease_until")
     )
       this.db.exec("ALTER TABLE run_requests ADD COLUMN lease_until TEXT");
+    this.ai = new LocalAIRepository(this.db, this.key);
     this.reconcileStale();
   }
   close() {

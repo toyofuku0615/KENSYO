@@ -11,6 +11,11 @@ export interface TermsDocument {
   kind: RuleEvidence["kind"];
   fetchedAt: string;
 }
+export function hasUnsupportedEligibility(text: string): boolean {
+  return /(?:東京都|北海道|大阪府|京都府|[一-龥]{2,5}[県市区町村])(?:に|内に)?(?:在住|居住|お住まい)[^。\n]{0,20}(?:限定|のみ|対象|限ります|方)|(?:女性|男性|学生|会社員|公務員|医療従事者|既婚者|未婚者)(?:の方)?(?:を)?(?:のみ|限定|対象)|\d{1,3}\s*歳(?:以下|未満|まで)|(?:従業員|関係者)[^。\n]{0,25}(?:応募できません|対象外|応募不可)/.test(
+    text,
+  );
+}
 export function analyzeRules(
   documents: TermsDocument[],
   options: {
@@ -103,6 +108,7 @@ export function analyzeRules(
     })),
     japanOnly: /日本(?:国内)?(?:在住|居住)|国内在住/.test(text),
     minAge: minAgeMatch ? Number(minAgeMatch[1]) : null,
+    eligibilityUnknown: hasUnsupportedEligibility(text),
     purchaseRequired:
       /(?:購入|レシート|バーコード)[^。\n]{0,20}(?:必要|必須)|(?:購入者|お買い上げの方)限定/.test(
         text,
@@ -142,6 +148,19 @@ export function decideEligibility(
   )
     reasons.push("個人情報の自動送信への事前同意が必要です");
   if (!profile) reasons.push("プロフィールが未登録です");
+  if (
+    campaign.rules.eligibilityUnknown ||
+    hasUnsupportedEligibility(
+      [
+        ...campaign.conditions,
+        ...campaign.rules.evidence.map((e) => e.quote),
+      ].join("\n"),
+    )
+  ) {
+    reasons.push(
+      "地域・属性など、現在のプロフィールでは検証できない応募条件があります。手動確認してください",
+    );
+  }
   if (preferences.maxApplications < 1) reasons.push("応募上限が0件です");
   if (
     !preferences.categories.includes(campaign.category) ||
@@ -245,5 +264,16 @@ export function rankCampaign(campaign: Campaign, now = new Date()): number {
         urgency +
         Math.max(0, 7 - categoryWeight) * 2,
     ),
+  );
+}
+
+/** Optional Gemini enrichment; the pure rule engine above remains the final authorization layer. */
+export async function analyzeCampaignWithAI(
+  campaign: Campaign,
+  service: import("./ai-analysis").CampaignAIService,
+): Promise<Campaign> {
+  return (await import("./ai-analysis")).enrichCampaignWithAI(
+    campaign,
+    service,
   );
 }

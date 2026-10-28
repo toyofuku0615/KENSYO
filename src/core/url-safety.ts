@@ -270,6 +270,15 @@ async function checkRobots(url: URL, allowedHosts: string[]): Promise<void> {
     throw new Error("robots.txt により取得が禁止されています");
 }
 
+/** Validate a navigation target and its current robots policy without fetching the page itself. */
+export async function assertRobotsAllowed(
+  raw: string,
+  allowedHosts: string[],
+): Promise<void> {
+  const url = await validatePublicUrl(raw, allowedHosts);
+  await checkRobots(url, allowedHosts);
+}
+
 export async function safeFetchText(
   raw: string,
   allowedHosts: string[],

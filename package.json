@@ -14,9 +14,11 @@
     "test:e2e": "playwright test",
     "worker": "tsx scripts/worker.ts",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "test:gemini": "node --import tsx scripts/test-gemini.ts"
   },
   "dependencies": {
+    "@google/genai": "^2.31.0",
     "@radix-ui/react-slot": "^1.2.3",
     "@supabase/ssr": "^0.7.0",
     "@supabase/supabase-js": "^2.57.0",
@@ -31,7 +33,8 @@
     "react-dom": "^19.1.0",
     "tailwind-merge": "^3.3.1",
     "undici": "^7.16.0",
-    "zod": "^3.25.0"
+    "zod": "^3.25.0",
+    "zod-to-json-schema": "^3.25.2"
   },
   "devDependencies": {
     "@playwright/test": "^1.56.0",

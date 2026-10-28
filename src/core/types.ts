@@ -1,3 +1,4 @@
+import type { AIRepository } from "./ai-types";
 export const CATEGORIES = [
   "現金・ギフト券",
   "Amazonギフト券",
@@ -73,6 +74,8 @@ export interface CampaignRules {
   requiredConsents: string[];
   requiredFields: string[];
   technicalAllowed: boolean;
+  /** A condition exists that the current profile/rule engine cannot verify. */
+  eligibilityUnknown?: boolean;
 }
 export interface Campaign {
   id: string;
@@ -94,6 +97,12 @@ export interface Campaign {
   checkedAt: string;
   adapterId: string | null;
   isDemo: boolean;
+  aiAnalysis?: {
+    status: "success" | "unavailable" | "manual_required";
+    reason: string;
+    analyzedAt: string;
+    model?: string;
+  };
 }
 export interface Application {
   id: string;
@@ -121,6 +130,7 @@ export interface AuditEntry {
   createdAt: string;
 }
 export interface Store {
+  ai: AIRepository;
   getProfile(userId: string): Promise<Profile | null>;
   saveProfile(userId: string, profile: Profile): Promise<void>;
   getPreferences(userId: string): Promise<Preferences>;

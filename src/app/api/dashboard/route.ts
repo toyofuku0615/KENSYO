@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { apiError, mode, privateHeaders, requireUser } from "@/lib/auth";
 import { getStore } from "@/lib/store";
+import { createAIService } from "@/lib/ai/provider";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export async function GET(request: NextRequest) {
@@ -27,6 +28,7 @@ export async function GET(request: NextRequest) {
         store.listApplications(userId),
         store.listRuns(userId),
       ]);
+    const aiStatus = await createAIService(store, userId).getStatus();
     return NextResponse.json(
       {
         mode: mode(),
@@ -40,7 +42,7 @@ export async function GET(request: NextRequest) {
         campaigns,
         applications,
         runs,
-        aiConfigured: false,
+        aiConfigured: aiStatus.keyConfigured,
       },
       { headers: privateHeaders },
     );

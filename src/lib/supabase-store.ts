@@ -1,3 +1,5 @@
+import { SupabaseAIRepository } from "./ai/supabase-repository";
+import type { AIRepository } from "../core/ai-types";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { randomUUID } from "node:crypto";
 import {
@@ -18,6 +20,7 @@ import {
 } from "./profile-crypto";
 
 export class SupabaseStore implements Store {
+  readonly ai: AIRepository;
   private client: SupabaseClient;
   private key: Buffer;
   constructor(url: string, serviceKey: string, profileKey: string) {
@@ -25,6 +28,7 @@ export class SupabaseStore implements Store {
       auth: { persistSession: false, autoRefreshToken: false },
     });
     this.key = encryptionKey(profileKey);
+    this.ai = new SupabaseAIRepository(this.client, this.key);
   }
   private check(error: { message: string } | null) {
     if (error) throw new Error("Database operation failed");
@@ -67,12 +71,10 @@ export class SupabaseStore implements Store {
   }
   async saveProfile(userId: string, profile: Profile) {
     await this.ensureUser(userId);
-    const { error } = await this.client
-      .from("user_profiles")
-      .upsert({
-        user_id: userId,
-        data: { ciphertext: encryptProfile(profile, this.key, userId) },
-      });
+    const { error } = await this.client.from("user_profiles").upsert({
+      user_id: userId,
+      data: { ciphertext: encryptProfile(profile, this.key, userId) },
+    });
     this.check(error);
   }
   async getPreferences(userId: string): Promise<Preferences> {

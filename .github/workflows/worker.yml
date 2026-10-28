@@ -18,6 +18,9 @@ jobs:
       SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
       PROFILE_ENCRYPTION_KEY: ${{ secrets.PROFILE_ENCRYPTION_KEY }}
       ENABLE_LIVE_SUBMISSIONS: "false"
+      LIVE_SUBMISSION_HOSTS: ${{ vars.LIVE_SUBMISSION_HOSTS }}
+      # Optional fallback; an encrypted key saved by the user in AI settings takes precedence.
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
